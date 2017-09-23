@@ -6,3 +6,4 @@ js
 tsconfig.json
 .#*
 heritage_data.js
+config.json
