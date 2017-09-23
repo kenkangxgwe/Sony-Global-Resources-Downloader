@@ -237,7 +237,9 @@ function downloadHeritageData(savePath) {
       (dcCallback) => {
         event.trigger('send-status', `${folderName} download completed. \n`);
         dcCallback(null);
-      }], dataCallback(null));
+      }], (error, results) => {
+        dataCallback(null);
+      });
 
   }, () => {
     event.trigger('send-status', `All download completed. \n`);
