@@ -1,8 +1,8 @@
 # A Sony Global Resources Downloader
-This electron application downloads the photographs in the highest resolution and the sound scape and theme music of all the locations in [Sony Global - alpha CLOCK: WORLD TIME, CAPTURED BY alpha](www.sony.net/united/clock/).
+This electron application downloads the photographs in the highest resolution and the sound scapes and theme songs of all the locations in [Sony Global - alpha CLOCK: WORLD TIME, CAPTURED BY alpha](http://www.sony.net/united/clock/).
 
 ## Usage
-1. Install [Node.js](nodejs.org).
+1. Install [Node.js](https://nodejs.org).
 2. Clone this repository
 ```
 git clone https://github.com/kenkangxgwe/Sony-Global-Resources-Downloader.git
