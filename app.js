@@ -10,6 +10,7 @@ let config;
 
 const heritage_data_js_url = 'https://www.sony.net/united/clock/assets/js/heritage_data.js';
 const heritage_data_js_file = `${app.getAppPath()}/heritage_data.js`;
+const config_file = `${app.getAppPath()}/config.json`;
 
 function downloadFile(url, location, options, callback) {
   event.trigger('send-status', `Downloading from ${url} to ${location} ... `);
@@ -52,7 +53,7 @@ function initHeritageData() {
 }
 
 function initConfig() {
-  fs.open('./config.json', 'wx', (err, fd) => {
+  fs.open(config_file, 'wx', (err, fd) => {
     if (err) {
       if (err.code === 'EEXIST') {
         initSavePath();
@@ -77,7 +78,7 @@ function initConfig() {
 }
 
 function initSavePath() {
-  const config = require('./config.json');
+  const config = require(config_file);
   event.trigger('load-config', config);
 }
 
