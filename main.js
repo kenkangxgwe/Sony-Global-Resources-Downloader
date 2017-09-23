@@ -1,5 +1,4 @@
 const { app, BrowserWindow } = require('electron');
-require('electron-dl')();
 
 const path = require('path');
 const url = require('url');

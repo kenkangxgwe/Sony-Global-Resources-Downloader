@@ -1,7 +1,5 @@
-// const request = require('request');
 const fs = require('fs');
 const path = require('path');
-const unzip = require('unzip');
 const { app, BrowserWindow } = require('electron');
 const download = require('download');
 const event = require('./events.js');
@@ -22,18 +20,6 @@ function downloadFile(url, location, options, callback) {
     event.trigger('send-status', "Complete.\n");
     callback(url, location);
   });
-
-  // var stream = fs.createWriteStream(filename);
-  // event.trigger('send-status', "Downloading from " + url + " to " + filename + "...\n");
-  // request(url).pipe(stream).on('close', function() {
-  //   event.trigger('send-status', "Download completed.");
-  //   callback(url, filename);
-  // });
-}
-
-function unzipFile(src, tar, callback)
-{
-  fs.createReadStream(src).pipe(unzip.Extract({ path: tar })).on('close', callback(src, tar));
 }
 
 function updateHeritageData() {
