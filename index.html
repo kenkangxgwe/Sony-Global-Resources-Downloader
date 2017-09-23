@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>Sony Global Resources Downloader</title>
+        <link rel="stylesheet" href="./assets/style.css" type="text/css" media="screen" />
+    </head>
+    <body onload="require('./render-process/initApp');" >
+        <div>
+            <span>Specify the path to save photos:</span>
+            <div class="input-and-button" >
+                <input id="photo-path" type="text"/>
+                <button type="button" id="set-photo-path">Browse</button>
+            </div>
+        </div>
+        <div>
+            <span>Specify the path to save theme songs:</span>
+            <div class="input-and-button" >
+                <input id="music-path" type="text"/>
+                <button type="button" id="set-music-path">Browse</button>
+            </div>
+        </div>
+        <button type="button" id="update-heritage-data" >Update Heritage Data</button>
+        <button type="button" id="download-heritage-data" >Download</button>
+        <div id="status-bar"></div>
+        <script>
+         require('./render-process/statusBar')
+         require('./render-process/buttons')
+        </script>
+    </body>
+</html>

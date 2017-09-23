@@ -1,0 +1,66 @@
+:root {
+    --color-bg: hsl(0, 0%, 96%);
+    --color-border: hsl(0, 0%, 88%);
+    --color-hover: hsl(0, 0%, 88%);
+    --color-focus: hsl(0, 0%, 80%);
+}
+
+div {
+    display: block;
+    cursor: default;
+    margin: 3px;
+}
+
+span {
+    display: inline-flex;
+    width: 250px;
+    user-select: none;
+}
+
+div.input-and-button {
+    display: inline-block;
+    position: relative;
+    margin: 5px;
+    width: auto;
+}
+
+input {
+    display: inline-block;
+    min-width: 320px;
+    user-select: none;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background-color: white;
+}
+
+button {
+    position: relative;
+    margin-left: 5px;
+    margin-right: 5px;
+    padding: 5px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background-color: var(--color-bg);
+}
+
+button:hover{
+    background-color: var(--color-hover);
+}
+
+button:active{
+    background-color: var(--color-focus);
+}
+
+div#status-bar {
+    top: 20px;
+    margin: 5px
+    width: auto;
+    height: 600px;
+    overflow: auto;
+    font-size: 14px;
+    padding: 12px;
+    position: relative;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 5px
+}

@@ -1,0 +1,26 @@
+{
+  "name": "sony-global-resource-downloader",
+  "version": "1.0.0",
+  "description": "This small nodejs app download the photographs in the highest resolution and the sound scape and background music of all the locations in Sony Global - alpha CLOCK: WORLD TIME, CAPTURED BY alpha.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sony-global",
+    "photographs"
+  ],
+  "author": "kenkangxgwe",
+  "license": "MIT",
+  "dependency": {
+    "request": "",
+    "fs": ""
+  },
+  "devDependencies": {
+    "electron": "^1.7.6"
+  },
+  "dependencies": {
+    "async": "^2.5.0",
+    "download": "^6.2.5"
+  }
+}

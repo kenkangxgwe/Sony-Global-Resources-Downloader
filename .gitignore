@@ -1,0 +1,8 @@
+*.swp
+node_modules
+typings
+js
+.tern-port
+tsconfig.json
+#*
+heritage_data.js
