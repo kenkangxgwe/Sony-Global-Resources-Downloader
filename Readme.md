@@ -7,13 +7,10 @@ This electron application downloads the photographs in the highest resolution an
 ```
 git clone https://github.com/kenkangxgwe/Sony-Global-Resources-Downloader.git
 ```
-3. Use `npm` to install
+3. Use `npm` to install and run
 ```
 npm install
-```
-4. Use `electron` to run
-```
-electron .
+npm start
 ```
 
 ## What happened?

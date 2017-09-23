@@ -4,6 +4,7 @@
   "description": "This small nodejs app download the photographs in the highest resolution and the sound scape and background music of all the locations in Sony Global - alpha CLOCK: WORLD TIME, CAPTURED BY alpha.",
   "main": "main.js",
   "scripts": {
+    "start": ".\\node_modules\\.bin\\electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -12,6 +13,7 @@
   ],
   "author": "kenkangxgwe",
   "license": "MIT",
+  "repository" : "https://github.com/kenkangxgwe/Sony-Global-Resources-Downloader",
   "dependency": {
     "request": "",
     "fs": ""
