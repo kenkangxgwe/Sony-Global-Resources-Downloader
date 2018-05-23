@@ -43,7 +43,7 @@ function initHeritageData() {
       heritageData = require(heritage_data_js_file).data;
       return;
     }
-    if (err.code == 'ENOENT') {
+    if (err.code === 'ENOENT') {
       updateHeritageData();
       return;
     } else {
@@ -84,153 +84,176 @@ function initSavePath() {
 
 exports.initApp = function () {
   initHeritageData();
-
   initConfig();
 };
+
+const mkdir = (dir, callback) => {
+  fs.mkdir(dir, (err) => {
+    if (!err || err.code === 'EEXIST') {
+      event.trigger('send-status', `Folder created or already exists: ${dir}.\n`);
+      callback(null, dir);
+    } else {
+      console.log(dir);
+      callback(err, null);
+    }
+  });
+};
+
+const fp_filename    = (id, num) => `${id}_3840_2160_fp_${num}`;
+const ss_filename    = (id, num) => `${id}_3840_2160_ss_${num}`;
+const sound_filename = (addr) => path.basename(addr);
+const music_filename = (id) => 'theme_song_of_world_heritage_' + id + '.mp3';
+const fp_address     = (id, num) => `http://di.update.sony.net/ACLK/wallpaper/${id}/3840_2160/fp/${fp_filename(id, num)}.zip`;
+const ss_address     = (id, num) => `http://di.update.sony.net/ACLK/wallpaper/${id}/3840_2160/ss/${ss_filename(id, num)}.zip`;
+const sound_address  = (addr) => (`http://hq.update.sony.net.edgesuite.net/${addr}`);
+const music_address  = (id) => `https://www.sony.net/united/clock/assets/sound/${music_filename(id)}`;
 
 function downloadHeritageData(savePath) {
 
   event.trigger('send-status', "Start downloading latest heritage data.\n");
 
-  const mkdir = (dir) => {
-    fs.mkdir(dir, (err) => {
-      if (err) {
-        if (err.code === 'EEXIST') {
-          // event.trigger('send-status', `Folder already exists: ${dir}\n`);
-        } else {
-          throw err;
-        }
-      } else {
-        event.trigger('send-status', `Folder created: ${dir}.\n`);
-      }
-    });
-  };
+  async.autoInject({
+    createPhotoFolder: (callback) => mkdir(savePath.photoPath, callback),
+    createMusicFolder: (callback) => mkdir(savePath.musicPath, callback),
+    downloadSeries: [
+      'createPhotoFolder', 'createMusicFolder', (photoPath, musicPath, seriesCallback) => {
+        console.log(savePath.photoPath);
+        console.log(photoPath);
+        async.eachSeries(heritageData, function(heritage, heritageCallback) {
+          let heritageName = heritage.id[0].toUpperCase() + heritage.id.substr(1);
+          let heritagePath = path.join(photoPath, heritageName);
 
-  const fp_filename    = (id, num) => `${id}_3840_2160_fp_${num}`;
-  const ss_filename    = (id, num) => `${id}_3840_2160_ss_${num}`;
-  const sound_filename = (addr) => path.basename(addr);
-  const music_filename = (id) => 'theme_song_of_world_heritage_' + id + '.mp3';
-  const fp_address     = (id, num) => `http://di.update.sony.net/ACLK/wallpaper/${id}/3840_2160/fp/${fp_filename(id, num)}.zip`;
-  const ss_address     = (id, num) => `http://di.update.sony.net/ACLK/wallpaper/${id}/3840_2160/ss/${ss_filename(id, num)}.zip`;
-  const sound_address  = (addr) => (`http://hq.update.sony.net.edgesuite.net/${addr}`);
-  const music_address  = (id) => `https://www.sony.net/united/clock/assets/sound/${music_filename(id)}`;
-
-  mkdir(savePath.photoPath);
-  mkdir(savePath.musicPath);
-
-  async.eachSeries(heritageData, function(heritage, dataCallback) {
-    let folderName = heritage.id[0].toUpperCase() + heritage.id.substr(1);
-    let folderPath = path.join(savePath.photoPath, folderName);
-
-    mkdir(folderPath);
-
-    fs.open(path.join(folderPath, `${folderName}.json`), 'wx', (err, fd) => {
-      if (err) {
-        if (err.code !== 'EEXIST') {
-          event.trigger('send-status', 'Error!');
-          throw err;
-        }
-      } else {
-        event.trigger('send-status', `Writing JSON file: ${folderName}.json\n`);
-        fs.write(fd, JSON.stringify(heritage, null, 4), () => {
-          fs.close(fd, () => {});
+          async.autoInject({
+            createHeritageFolder: (callback) => mkdir(heritagePath, callback),
+            openHeritageJson: [
+              'createHeritageFolder', (dir, callback) =>
+                fs.open(path.join(heritagePath, `${heritageName}.json`), 'wx', (err, fd) => {
+                  if(!err || err.code === 'EEXIST') {
+                    callback(null, fd);
+                  } else {
+                    callback(err, null);
+                  }
+                })
+            ],
+            writeHeritageJson: [
+              'openHeritageJson', (fd, callback) => {
+                if(fd) {
+                  event.trigger('send-status', `Writing JSON file: ${heritageName}.json\n`);
+                  fs.write(fd, JSON.stringify(heritage, null, 4), (err) => {
+                    if(err) {
+                      callback(err);
+                    }
+                    fs.close(fd, callback);
+                  });
+                } else {
+                  callback(null);
+                }
+              }
+            ],
+            createFpFolder: [
+              'createHeritageFolder', (dir, callback) => {
+                let fp_folderPath = path.join(heritagePath, `${heritageName}_fp`);
+                mkdir(fp_folderPath, callback);
+              }
+            ],
+            downloadFp: [
+              'createFpFolder', (fpPath, callback) =>
+                // Download fp photos
+                async.eachOfSeries(heritage.fp , function(value, num, numCallback) {
+                  if (!isNaN(parseInt(num))) {
+                    fs.access(path.join(fpPath, fp_filename(heritage.id, num) + '.jpg'), (notexist) => {
+                      if (notexist) {
+                        downloadFile(fp_address(heritage.id, num), fpPath, {extract: true}, (url, location) => {
+                          numCallback(null);
+                        });
+                      } else {
+                        // event.trigger('send-status', 'File already exists.\n');
+                        numCallback(null);
+                      }
+                    });
+                  } else {
+                    numCallback(null);
+                  }
+                }, callback)
+            ],
+            createSsFolder: [
+              'downloadFp', (flag, callback) => {
+                // Download ss photos
+                var ss_folderPath = path.join(heritagePath, `${heritageName}_ss`);
+                mkdir(ss_folderPath, callback);
+              }
+            ],
+            downloadSs: [
+              'createSsFolder', (ssPath, callback) => 
+                async.eachSeries(heritage.ex, function (ss, numCallback) {
+                  if (!isNaN(parseInt(ss.num))) {
+                    fs.access(path.join(ssPath, ss_filename(heritage.id, ss.num) + '.jpg'), (notexist) => {
+                      if (notexist) {
+                        downloadFile(ss_address(heritage.id, ss.num), ssPath, {extract: true}, (url, location) => {
+                          numCallback(null);
+                        });
+                      } else {
+                        // event.trigger('send-status', 'File already exists.\n');
+                        numCallback(null);
+                      }
+                    });
+                  } else {
+                    numCallback(null);
+                  }
+                }, callback)
+            ],
+            downloadSound: [
+              'downloadSs', (flag, callback) => {
+                // Download soundscape
+                if (heritage.soundscape !== null) {
+                  fs.access(path.join(heritagePath, sound_filename(heritage.soundscape.media.mp3)), (notexist) => {
+                    if (notexist) {
+                      downloadFile(sound_address(heritage.soundscape.media.mp3), heritagePath, {}, (url,location) => {
+                        callback(null);
+                      });
+                    } else {
+                      // event.trigger('send-status', 'File already exists.\n');
+                      callback(null);
+                    }
+                  });
+                } else {
+                  callback(null);
+                }
+              }],
+            downloadMusic: [
+              'downloadSound', (flag, callback) => {
+                // Download theme song
+                if (!isNaN(parseInt(heritage.music))) {
+                  fs.access(path.join(savePath.musicPath, music_filename(heritage.music)), (notexist) => {
+                    if (notexist) {
+                      downloadFile(music_address(heritage.music), savePath.musicPath, {}, (url, location) => {
+                        callback(null);
+                      });
+                    } else {
+                      // event.trigger('send-status', 'File already exists.\n');
+                      callback(null);
+                    }
+                  });
+                } else {
+                  callback(null);
+                }
+              }]
+          }, (callback) => {
+            event.trigger('send-status', `${heritageName} download completed. \n`);
+            heritageCallback(null);
+          });
+        }, (err, results) => {
+          if(err) {
+            throw(err);
+          } else {
+            event.trigger('send-status', `All download completed. \n`);
+          }
         });
       }
-    });
-
-    async.series([
-      (fpCallback) => {
-        // Download fp photos
-        var fp_folderPath = path.join(folderPath, `${folderName}_fp`);
-        mkdir(fp_folderPath);
-
-        async.eachOfSeries(heritage.fp , function(value, num, numCallback) {
-          if (!isNaN(parseInt(num))) {
-            fs.access(path.join(fp_folderPath, fp_filename(heritage.id, num) + '.jpg'), (notexist) => {
-              if (notexist) {
-                downloadFile(fp_address(heritage.id, num), fp_folderPath, {extract: true}, (url, location) => {
-                  numCallback(null);
-                });
-              } else {
-                // event.trigger('send-status', 'File already exists.\n');
-                numCallback(null);
-              }
-            });
-          } else {
-            numCallback(null);
-          }
-        }, fpCallback(null));
-      },
-
-      (ssCallback) => {
-        // Download ss photos
-        var ss_folderPath = path.join(folderPath, `${folderName}_ss`);
-        mkdir(ss_folderPath);
-
-        async.eachSeries(heritage.ex, function (ss, numCallback) {
-          if (!isNaN(parseInt(ss.num))) {
-            fs.access(path.join(ss_folderPath, ss_filename(heritage.id, ss.num) + '.jpg'), (notexist) => {
-              if (notexist) {
-                downloadFile(ss_address(heritage.id, ss.num), ss_folderPath, {extract: true}, (url, location) => {
-                  numCallback(null);
-                });
-              } else {
-                // event.trigger('send-status', 'File already exists.\n');
-                numCallback(null);
-              }
-            });
-          } else {
-            numCallback(null);
-          }
-        }, ssCallback(null));
-      },
-
-      (soundCallback) => {
-        // Download soundscape
-        if (heritage.soundscape !== null) {
-          fs.access(path.join(folderPath, sound_filename(heritage.soundscape.media.mp3)), (notexist) => {
-            if (notexist) {
-              downloadFile(sound_address(heritage.soundscape.media.mp3), folderPath, {}, (url,location) => {
-                soundCallback(null);
-              });
-            } else {
-              // event.trigger('send-status', 'File already exists.\n');
-              soundCallback(null);
-            }
-          });
-        } else {
-          soundCallback(null);
-        }
-      },
-
-      (musicCallback) => {
-        // Download theme song
-        if (!isNaN(parseInt(heritage.music))) {
-          fs.access(path.join(savePath.musicPath, music_filename(heritage.music)), (notexist) => {
-            if (notexist) {
-              downloadFile(music_address(heritage.music), savePath.musicPath, {}, (url, location) => {
-                musicCallback(null);
-              });
-            } else {
-              // event.trigger('send-status', 'File already exists.\n');
-              musicCallback(null);
-            }
-          });
-        } else {
-          musicCallback(null);
-        }
-      },
-
-      (dcCallback) => {
-        event.trigger('send-status', `${folderName} download completed. \n`);
-        dcCallback(null);
-      }], (error, results) => {
-        dataCallback(null);
-      });
-
-  }, () => {
-    event.trigger('send-status', `All download completed. \n`);
-});
+    ]
+  }, (err, results) => {
+    console.log(err);
+  });
 }
 
 exports.downloadHeritageData = downloadHeritageData;
