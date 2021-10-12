@@ -19,7 +19,7 @@
     "fs": ""
   },
   "devDependencies": {
-    "electron": ">=10.2.0"
+    "electron": ">=11.5.0"
   },
   "dependencies": {
     "async": "^3.2.0",
