@@ -22,7 +22,7 @@
     "electron": ">=11.5.0"
   },
   "dependencies": {
-    "async": "^3.2.0",
+    "async": "^3.2.2",
     "download": "^8.0.0"
   }
 }
